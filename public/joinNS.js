@@ -3,7 +3,7 @@ function joinNS(endpoint){
         nsSocket.close();
         document.querySelector('#user-input').removeEventListener('submit', formSubmition);
     }
-nsSocket = io(`https://chat-app-mrki.herokuapp.com${endpoint}`);
+nsSocket = io(`http://localhost:9000${endpoint}`);
 nsSocket.on('nsRoomLoad', (nsRooms)=>{
     let roomList = document.querySelector('.room-list');
     roomList.innerHTML = "";
@@ -23,7 +23,7 @@ nsSocket.on('nsRoomLoad', (nsRooms)=>{
 });
 
 nsSocket.on('messageToClients',(msg)=>{
-    console.log(msg)
+    
     const newMsg = buildHTML(msg);
     document.querySelector('#messages').innerHTML += newMsg;
 })

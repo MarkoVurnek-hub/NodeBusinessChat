@@ -1,5 +1,5 @@
 const username = prompt("Welcome to Farshore Partners chat!\n Please enter your username:")
-const socket = io('https://chat-app-mrki.herokuapp.com', {
+const socket = io('http://localhost:9000', {
     query:{
         username
     }

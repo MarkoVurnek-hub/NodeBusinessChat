@@ -1,7 +1,9 @@
 const express = require('express');
 const socketio = require('socket.io');
+const kafka = require('kafka-node');
 const app = express();
 let namespaces = require('./data/namespaces'); 
+
 
 app.use(express.static(__dirname + '/public'));
 
@@ -19,6 +21,7 @@ io.on('connection', (socket)=>{
 });
 
 namespaces.forEach((namespace)=>{
+
     io.of(namespace.endpoint).on('connection', (nsSocket)=>{
         const username = nsSocket.handshake.query.username;
         nsSocket.emit('nsRoomLoad', namespace.rooms);
@@ -37,16 +40,31 @@ namespaces.forEach((namespace)=>{
             updateUsersInRoom(namespace, roomToJoin);
         });
         nsSocket.on('newMessage', (msg)=>{
+           
             const fullMsg = {
                 text: msg.text,
                 time: Date.now(),
                 username: username,
                 avatar: 'https://via.placeholder.com/30'
             }
+            
             const roomTitle = Object.keys(nsSocket.rooms)[1];
             const nsRoom = namespace.rooms.find((room)=>{
                 return room.roomTitle == roomTitle;
             });
+            const client = new kafka.KafkaClient({kafkaHost: 'localhost:9092'});
+            const Producer = kafka.Producer,
+            producer = new Producer(client),
+            payloads = [
+                { topic: 'test', messages:msg.text, partition: 0 },
+            
+            ];
+            producer.on('ready', function () {
+             producer.send(payloads, function (err, data) {
+                console.log(data);
+             });
+            });
+            
             nsRoom.addMessage(fullMsg);
             io.of(namespace.endpoint).to(roomTitle).emit('messageToClients',fullMsg);
         });
